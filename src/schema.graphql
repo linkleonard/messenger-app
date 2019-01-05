@@ -1,18 +1,28 @@
-type Query {
-  me: User
-  user(id: ID): User
-  users: [User]
-  messages: [Message]
-}
+  type Query {
+    me: User
+    user(id: ID): User
+    users: [User]
+    conversations: [Conversation]
+    messages(conversationId: ID): [Message]
+  }
 
-type User {
-  id: ID
-  name: String
-  messages: [Message]
-}
+  type User {
+    id: ID
+    name: String
+    conversations: [Conversation]
+    messages: [Message]
+  }
 
-type Message {
-  id: ID
-  body: String
-  sender: User!
-}
+  type Conversation {
+    id: ID
+    name: String
+    participants: [User]
+    messages: [Message]
+  }
+
+  type Message {
+    id: ID
+    body: String!
+    conversation: Conversation!
+    sender: User!
+  }

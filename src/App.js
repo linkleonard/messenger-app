@@ -1,9 +1,25 @@
 import { QueryRenderer } from 'react-relay';
+import styled from 'styled-components/macro';
 import graphql from 'babel-plugin-relay/macro';
-import React, { Component } from 'react';
+import React from 'react';
 import environment from './environment';
 import ConversationPane from './ConversationPane';
+import ConversationSelectionPane from './ConversationSelectionPane';
 import CurrentUserContext from './CurrentUserContext';
+
+const AppWrapper = styled.div`
+  display: flex;
+  flex-flow: row;
+  height: 100%;
+`;
+
+const SelectionPaneWrapper = styled.div`
+  flex: 0 0 200px;
+`;
+
+const ConversationPaneWrapper = styled.div`
+  flex: 1 1 auto;
+`
 
 const App = () => (
   <QueryRenderer
@@ -12,6 +28,14 @@ const App = () => (
       query AppQuery {
         me {
           id
+        }
+        conversations {
+          id
+          name
+          participants {
+            id
+            name
+          }
         }
       }
     `}
@@ -25,11 +49,23 @@ const App = () => (
       }
 
       return (
-        <div className="App">
+        <AppWrapper>
           <CurrentUserContext.Provider value={props.me}>
-            <ConversationPane />
+            <SelectionPaneWrapper>
+              <ConversationSelectionPane
+                activeConversation={props.conversations[0].id}
+                conversations={props.conversations}
+              />
+            </SelectionPaneWrapper>
+
+            <ConversationPaneWrapper>
+              <ConversationPane
+                activeConversation={props.conversations[0].id}
+                conversations={props.conversations}
+              />
+            </ConversationPaneWrapper>
           </CurrentUserContext.Provider>
-        </div>
+        </AppWrapper>
       );
     }}
   />
