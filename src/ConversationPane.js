@@ -44,8 +44,14 @@ const SenderName = styled.div`
   color: #aaa;
 `;
 
+const tightRadius = "5px";
+const wideRadius = "20px";
+
 const Message = styled.div.attrs({
-  side: ({isSender}) => isSender ? "right" : "left",
+  firstLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
+  firstRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
+  middleLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
+  middleRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
 })`
   display: inline-block;
   flex: 0 1 0;
@@ -58,14 +64,17 @@ const Message = styled.div.attrs({
 
   font-size: 14px;
   border: 1px solid transparent;
-  border-bottom-${({side}) => side}-radius: 5px;
+  border-bottom-left-radius: ${({firstLeftRadius}) => firstLeftRadius};
+  border-bottom-right-radius: ${({firstRightRadius}) => firstRightRadius};
 
   & + div {
-    border-top-${({side}) => side}-radius: 5px;
+    border-top-left-radius: ${({middleLeftRadius}) => middleLeftRadius};
+    border-top-right-radius: ${({middleRightRadius}) => middleRightRadius};
   }
 
   &:last-child {
-    border-bottom-${({side}) => side}-radius: 20px;
+    border-bottom-left-radius: ${wideRadius};
+    border-bottom-right-radius: ${wideRadius};
   }
 `;
 
@@ -80,8 +89,8 @@ const ConversationPane = (props) => (
   <QueryRenderer
     environment={environment}
     query={graphql`
-      query ConversationPanelQuery {
-        messages {
+      query ConversationPanelQuery($conversationId: ID) {
+        messages(conversationId: $conversationId) {
           id
           body
           sender {
@@ -91,7 +100,7 @@ const ConversationPane = (props) => (
         }
       }
     `}
-    variables={{userID: props.userID}}
+    variables={{userID: props.userID, conversationId: props.conversationId}}
     render={({error, props}) => {
       if (error) {
         return <div>Error!</div>;
