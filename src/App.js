@@ -1,11 +1,12 @@
 import { QueryRenderer } from 'react-relay';
+import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import styled from 'styled-components/macro';
 import graphql from 'babel-plugin-relay/macro';
 import React from 'react';
 import environment from './environment';
-import ConversationPane from './ConversationPane';
-import ConversationSelectionPane from './ConversationSelectionPane';
+import ConversationListView from './ConversationListView';
 import CurrentUserContext from './CurrentUserContext';
+import CurrentConversationContext from './CurrentConversationContext';
 
 const AppWrapper = styled.div`
   display: flex;
@@ -13,13 +14,18 @@ const AppWrapper = styled.div`
   height: 100%;
 `;
 
-const SelectionPaneWrapper = styled.div`
-  flex: 0 0 350px;
-`;
 
-const ConversationPaneWrapper = styled.div`
-  flex: 1 1 auto;
-`
+const Conversations = ({ match, conversations }) => {
+  return (
+    <CurrentConversationContext.Provider value={match.params.id}>
+      <ConversationListView
+        activeConversationId={match.params.id}
+        conversations={conversations}
+      />
+    </CurrentConversationContext.Provider>
+  );
+};
+
 
 const App = () => (
   <QueryRenderer
@@ -51,19 +57,14 @@ const App = () => (
       return (
         <AppWrapper>
           <CurrentUserContext.Provider value={props.me}>
-            <SelectionPaneWrapper>
-              <ConversationSelectionPane
-                activeConversation={props.conversations[0].id}
-                conversations={props.conversations}
+            <Router>
+              <Route
+                path="/conversation/:id?/"
+                render={({match}) => (
+                  <Conversations match={match} conversations={props.conversations} />
+                )}
               />
-            </SelectionPaneWrapper>
-
-            <ConversationPaneWrapper>
-              <ConversationPane
-                activeConversation={props.conversations[0].id}
-                conversations={props.conversations}
-              />
-            </ConversationPaneWrapper>
+            </Router>
           </CurrentUserContext.Provider>
         </AppWrapper>
       );

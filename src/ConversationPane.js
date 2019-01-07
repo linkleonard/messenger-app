@@ -6,6 +6,7 @@ import styled from 'styled-components/macro';
 import environment from './environment';
 import CurrentUserContext from './CurrentUserContext';
 import ChatSenderIcon from './ChatSenderIcon';
+import CurrentConversationContext from './CurrentConversationContext';
 
 
 const ConversationContainer = styled.div`
@@ -86,83 +87,87 @@ const MessageGroup = styled.div`
 `;
 
 const ConversationPane = (props) => (
-  <QueryRenderer
-    environment={environment}
-    query={graphql`
-      query ConversationPanelQuery($conversationId: ID) {
-        messages(conversationId: $conversationId) {
-          id
-          body
-          sender {
-            id
-            name
+  <CurrentConversationContext.Consumer>
+    {value => (
+      <QueryRenderer
+        environment={environment}
+        query={graphql`
+          query ConversationPanelQuery($conversationId: ID) {
+            messages(conversationId: $conversationId) {
+              id
+              body
+              sender {
+                id
+                name
+              }
+            }
           }
-        }
-      }
-    `}
-    variables={{userID: props.userID, conversationId: props.conversationId}}
-    render={({error, props}) => {
-      if (error) {
-        return <div>Error!</div>;
-      }
-      if (!props) {
-        return <div>Loading...</div>;
-      }
-
-      const groupedMessages = props.messages.reduce(
-        (groups, message) => {
-          const lastGroup = groups[groups.length - 1];
-          if (!lastGroup) {
-            return [[message]];
+        `}
+        variables={{conversationId: value}}
+        render={({error, props}) => {
+          if (error) {
+            return <div>Error!</div>;
+          }
+          if (!props) {
+            return <div>Loading...</div>;
           }
 
-          if (message.sender.id === lastGroup[0].sender.id) {
-            return [
-              ...groups.slice(0, -1),
-              [...lastGroup, message],
-            ];
-          }
+          const groupedMessages = props.messages.reduce(
+            (groups, message) => {
+              const lastGroup = groups[groups.length - 1];
+              if (!lastGroup) {
+                return [[message]];
+              }
 
-          return [
-            ...groups,
-            [message],
-          ]
-        },
-        [],
-      );
+              if (message.sender.id === lastGroup[0].sender.id) {
+                return [
+                  ...groups.slice(0, -1),
+                  [...lastGroup, message],
+                ];
+              }
 
-      return (
-        <ConversationContainer>
-          {groupedMessages.map(messages => {
-            const firstMessage = messages[0];
-            const sender = firstMessage.sender;
-            return (
-              <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
-                {me => {
-                  const isSender = me.id === sender.id;
-                  return (
-                    <SenderMessageGroup isSender={isSender}>
-                      <Sender isSender={isSender}>
-                        <ChatSenderIcon>{sender}</ChatSenderIcon>
-                      </Sender>
-                      <MessageGroup isSender={isSender}>
-                        {!isSender && <SenderName>{sender.name}</SenderName>}
-                        {messages.map(message => (
-                          <Message isSender={isSender} key={message.id}>
-                            {message.body}
-                          </Message>
-                        ))}
-                      </MessageGroup>
-                    </SenderMessageGroup>
-                  );
-                }}
-              </CurrentUserContext.Consumer>
-            );
-          })}
-        </ConversationContainer>
-      );
-    }}
-  />
+              return [
+                ...groups,
+                [message],
+              ]
+            },
+            [],
+          );
+
+          return (
+            <ConversationContainer>
+              {groupedMessages.map(messages => {
+                const firstMessage = messages[0];
+                const sender = firstMessage.sender;
+                return (
+                  <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
+                    {me => {
+                      const isSender = me.id === sender.id;
+                      return (
+                        <SenderMessageGroup isSender={isSender}>
+                          <Sender isSender={isSender}>
+                            <ChatSenderIcon>{sender}</ChatSenderIcon>
+                          </Sender>
+                          <MessageGroup isSender={isSender}>
+                            {!isSender && <SenderName>{sender.name}</SenderName>}
+                            {messages.map(message => (
+                              <Message isSender={isSender} key={message.id}>
+                                {message.body}
+                              </Message>
+                            ))}
+                          </MessageGroup>
+                        </SenderMessageGroup>
+                      );
+                    }}
+                  </CurrentUserContext.Consumer>
+                );
+              })}
+            </ConversationContainer>
+          );
+        }}
+      />
+    )}
+  </CurrentConversationContext.Consumer>
 )
 
 export default ConversationPane;
