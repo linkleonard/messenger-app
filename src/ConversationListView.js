@@ -36,7 +36,7 @@ const ConversationListView = ({ conversations, conversation, activeConversationI
         {value => (
           <ConversationPane
             conversation={
-              conversations.filter(conversation => conversation.id === value)[0]
+              conversations.filter(conversation => conversation.id === value)[0] || null
             }
           />
         )}

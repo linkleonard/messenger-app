@@ -3,8 +3,6 @@ import graphql from 'babel-plugin-relay/macro';
 import { createFragmentContainer } from 'react-relay';
 import styled from 'styled-components/macro';
 
-import environment from './environment';
-
 const Bubble = styled.div`
   display: inline-flex;
   align-items: center;
