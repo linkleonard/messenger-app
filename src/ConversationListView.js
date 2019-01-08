@@ -18,6 +18,7 @@ const SelectionPaneWrapper = styled.div`
 `;
 
 const ConversationPaneWrapper = styled.div`
+  display: flex;
   flex: 1 1 auto;
 `
 

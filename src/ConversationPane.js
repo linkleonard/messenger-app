@@ -9,11 +9,13 @@ import Message from './Message';
 
 
 const ConversationContainer = styled.div`
+  flex: 1 0 auto;
   display: flex;
 
   flex-flow: column;
   align-items: center;
-  justify-items: flex-end;
+  justify-content: flex-end;
+  padding: 10px;
 
 `;
 
@@ -51,6 +53,9 @@ const MessageGroup = styled.div`
   align-items: ${({isSender}) => isSender ? "flex-end" : "flex-start"};
 `;
 
+const EmptyConversationMessage = styled.div`
+  color: #333;
+`;
 
 function groupMessages(messages) {
   return messages.reduce(
@@ -78,33 +83,43 @@ function groupMessages(messages) {
 
 
 const ConversationPane = ({ conversation }) => {
+  if (!conversation.messages.length) {
+    return (
+      <ConversationContainer>
+        <EmptyConversationMessage>This conversation does not yet have any messages.</EmptyConversationMessage>
+      </ConversationContainer>
+    );
+  }
+
   const groupedMessages = groupMessages(conversation.messages);
+  const messages = groupedMessages.map(messages => {
+    const firstMessage = messages[0];
+    const sender = firstMessage.sender;
+    return (
+      <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
+        {me => {
+          const isSender = me.id === sender.id;
+          return (
+            <SenderMessageGroup isSender={isSender}>
+              <Sender isSender={isSender}>
+                <ChatSenderIcon user={sender} />
+              </Sender>
+              <MessageGroup isSender={isSender}>
+                {!isSender && <SenderName>{sender.name}</SenderName>}
+                {messages.map(message => (
+                  <Message key={message.id} message={message} />
+                ))}
+              </MessageGroup>
+            </SenderMessageGroup>
+          );
+        }}
+      </CurrentUserContext.Consumer>
+    );
+  })
+
   return (
     <ConversationContainer>
-      {groupedMessages.map(messages => {
-        const firstMessage = messages[0];
-        const sender = firstMessage.sender;
-        return (
-          <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
-            {me => {
-              const isSender = me.id === sender.id;
-              return (
-                <SenderMessageGroup isSender={isSender}>
-                  <Sender isSender={isSender}>
-                    <ChatSenderIcon user={sender} />
-                  </Sender>
-                  <MessageGroup isSender={isSender}>
-                    {!isSender && <SenderName>{sender.name}</SenderName>}
-                    {messages.map(message => (
-                      <Message key={message.id} message={message} />
-                    ))}
-                  </MessageGroup>
-                </SenderMessageGroup>
-              );
-            }}
-          </CurrentUserContext.Consumer>
-        );
-      })}
+      {messages}
     </ConversationContainer>
   )
 };
