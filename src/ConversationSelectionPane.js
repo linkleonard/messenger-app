@@ -6,6 +6,7 @@ import { NavLink } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import ConversationIcon from './ConversationIcon';
 import CurrentConversationContext from './CurrentConversationContext';
+import ConversationName from './ConversationName';
 
 
 const ListWrapper = styled.div`
@@ -33,8 +34,6 @@ const ConversationItem = styled.div`
 `;
 
 
-const Name = styled.span``;
-
 const ConversationSelectionPane = ({ conversations }) => (
   <CurrentConversationContext.Consumer>
     {value => (
@@ -54,7 +53,7 @@ const ConversationSelectionPane = ({ conversations }) => (
               }}>
               <ConversationItem active={conversation.id === value}>
                 <ConversationIcon conversation={conversation} />
-                <Name active={conversation.id === value}>{conversation.name || "Untitled Conversation"}</Name>
+                <ConversationName conversation={conversation} />
               </ConversationItem>
             </NavLink>
           ))}
@@ -68,6 +67,7 @@ export default createFragmentContainer(ConversationSelectionPane, {
   conversations: graphql`
     fragment ConversationSelectionPane_conversations on Conversation @relay(plural: true) {
       id
+      ...ConversationName_conversation
       ...ConversationIcon_conversation
     }
   `,

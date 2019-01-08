@@ -30,7 +30,7 @@ export default createFragmentContainer(ConversationIcon, {
     fragment ConversationIcon_conversation on Conversation {
       name
       participants {
-          name
+        name
       }
     }
   `,
