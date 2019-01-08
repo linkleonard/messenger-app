@@ -53,7 +53,7 @@ const MessageGroup = styled.div`
   align-items: ${({isSender}) => isSender ? "flex-end" : "flex-start"};
 `;
 
-const EmptyConversationMessage = styled.div`
+const ErrorMessage = styled.div`
   color: #333;
 `;
 
@@ -83,10 +83,17 @@ function groupMessages(messages) {
 
 
 const ConversationPane = ({ conversation }) => {
+  if (!conversation) {
+    return (
+      <ConversationContainer>
+        <ErrorMessage>Please select a conversation.</ErrorMessage>
+      </ConversationContainer>
+    )
+  }
   if (!conversation.messages.length) {
     return (
       <ConversationContainer>
-        <EmptyConversationMessage>This conversation does not yet have any messages.</EmptyConversationMessage>
+        <ErrorMessage>This conversation does not yet have any messages.</ErrorMessage>
       </ConversationContainer>
     );
   }
