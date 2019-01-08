@@ -48,12 +48,12 @@ const SenderName = styled.div`
 const tightRadius = "5px";
 const wideRadius = "20px";
 
-const Message = styled.div.attrs({
-  firstLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
-  firstRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
-  middleLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
-  middleRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
-})`
+const Message = styled.div.attrs(({isSender}) => ({
+  firstLeftRadius: isSender ? wideRadius : tightRadius,
+  firstRightRadius: isSender ? tightRadius : wideRadius,
+  middleLeftRadius: isSender ? wideRadius : tightRadius,
+  middleRightRadius: isSender ? tightRadius : wideRadius,
+}))`
   display: inline-block;
   flex: 0 1 0;
 
