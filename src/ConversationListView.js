@@ -1,8 +1,11 @@
 import React from 'react';
 import styled from 'styled-components/macro';
+import graphql from 'babel-plugin-relay/macro';
+import { createFragmentContainer } from 'react-relay';
 
 import ConversationSelectionPane from './ConversationSelectionPane';
 import ConversationPane from './ConversationPane';
+import CurrentConversationContext from './CurrentConversationContext';
 
 
 const ViewWrapper = styled.div`
@@ -19,7 +22,7 @@ const ConversationPaneWrapper = styled.div`
 `
 
 
-const ConversationListView = ({ conversations, activeConversationId }) => (
+const ConversationListView = ({ conversations, conversation, activeConversationId }) => (
   <ViewWrapper>
     <SelectionPaneWrapper>
       <ConversationSelectionPane
@@ -28,12 +31,28 @@ const ConversationListView = ({ conversations, activeConversationId }) => (
     </SelectionPaneWrapper>
 
     <ConversationPaneWrapper>
-      <ConversationPane
-        conversations={conversations}
-      />
+      <CurrentConversationContext.Consumer>
+        {value => (
+          <ConversationPane
+            conversation={
+              conversations.filter(conversation => conversation.id === value)[0]
+            }
+          />
+        )}
+      </CurrentConversationContext.Consumer>
+
     </ConversationPaneWrapper>
   </ViewWrapper>
 );
 
 
-export default ConversationListView;
+export default createFragmentContainer(ConversationListView, {
+  conversations: graphql`
+    fragment ConversationListView_conversations on Conversation @relay(plural: true) {
+      id
+      name
+      ...ConversationPane_conversation
+      ...ConversationSelectionPane_conversations
+    }
+  `,
+});

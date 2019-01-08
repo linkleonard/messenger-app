@@ -1,6 +1,6 @@
 import React from 'react';
 import graphql from 'babel-plugin-relay/macro';
-import { QueryRenderer } from 'react-relay';
+import { createFragmentContainer } from 'react-relay';
 import styled from 'styled-components/macro';
 
 import environment from './environment';
@@ -18,31 +18,22 @@ const Bubble = styled.div`
 `;
 
 
-const ConversationIcon = ({ children }) => (
-  <QueryRenderer
-    environment={environment}
-    variables={{conversationId: children.id}}
-    query={graphql`
-      query ConversationIconQuery($conversationId: ID) {
-        conversation(id: $conversationId) {
-          name
-          participants {
-            name
-          }
-        }
-      }
-    `}
-    render={({error, props}) => {
-      if (error) {
-        return "Error!";
-      }
-      if (!props) {
-        return "Loading...";
-      }
-      const name = props.conversation.name !== null ? props.conversation.name[0] : "";
-      return <Bubble>{name}</Bubble>;
-    }}
-  />
-);
+const ConversationIcon = ({ conversation }) => {
+  const name = conversation.name !== null ? conversation.name[0] : "";
+  return (
+    <Bubble>
+      {name}
+    </Bubble>
+  );
+}
 
-export default ConversationIcon;
+export default createFragmentContainer(ConversationIcon, {
+  conversation: graphql`
+    fragment ConversationIcon_conversation on Conversation {
+      name
+      participants {
+          name
+      }
+    }
+  `,
+});

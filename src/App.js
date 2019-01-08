@@ -1,5 +1,5 @@
 import { QueryRenderer } from 'react-relay';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Route } from "react-router-dom";
 import styled from 'styled-components/macro';
 import graphql from 'babel-plugin-relay/macro';
 import React from 'react';
@@ -36,12 +36,7 @@ const App = () => (
           id
         }
         conversations {
-          id
-          name
-          participants {
-            id
-            name
-          }
+          ...ConversationListView_conversations
         }
       }
     `}

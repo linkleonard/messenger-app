@@ -21,6 +21,10 @@
     messages: [Message]
   }
 
+  type ConversationList {
+    items: [Conversation]
+  }
+
   type Message {
     id: ID
     body: String!
