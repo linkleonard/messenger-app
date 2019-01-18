@@ -1,5 +1,10 @@
 import React from 'react';
+import { commitMutation } from 'react-relay';
+import graphql from 'babel-plugin-relay/macro';
 import styled from 'styled-components/macro';
+
+import environment from './environment';
+
 
 const MessageForm = styled.form`
   display: flex;
@@ -22,16 +27,27 @@ const NewMessageInput = styled.input`
 `;
 
 
-graphql`
-  mutation NewMessageForm_CreateMessage(conversation: Conversation!, body: String!) {
-    createMessage(conversation: $conversation, body: $body) {
-      id
-    }
-  }
-`
-
 function submit(e) {
   e.preventDefault();
+
+  commitMutation(
+    environment,
+    {
+      mutation: graphql`
+        mutation NewMessageForm_CreateMessageMutation($conversationId: ID!, $body: String!) {
+          createMessage(conversationId: $conversationId, body: $body) {
+            id
+          }
+        }
+      `,
+      variables: {
+        input: {
+          conversationId: "C0",
+          body: "hello world",
+        }
+      }
+    }
+  )
 }
 
 

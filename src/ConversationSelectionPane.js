@@ -1,9 +1,12 @@
-
 import React from 'react';
+import graphql from 'babel-plugin-relay/macro';
+import { createFragmentContainer } from 'react-relay';
+
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components/macro';
 import ConversationIcon from './ConversationIcon';
 import CurrentConversationContext from './CurrentConversationContext';
+import ConversationName from './ConversationName';
 
 
 const ListWrapper = styled.div`
@@ -30,19 +33,14 @@ const ConversationItem = styled.div`
   }
 `;
 
-const ConversationName = styled.h2`
-  flex: 1 0 auto;
-`;
 
-const Name = styled.span``;
-
-const ConversationSelectionPane = (props) => (
+const ConversationSelectionPane = ({ conversations }) => (
   <CurrentConversationContext.Consumer>
     {value => (
       <ListWrapper>
         <SearchBar></SearchBar>
         <ConversationList>
-          {props.conversations.map(conversation => (
+          {conversations.map(conversation => (
             <NavLink
               key={conversation.id}
               to={`/conversation/${conversation.id}/`}
@@ -54,8 +52,8 @@ const ConversationSelectionPane = (props) => (
                 color: "black",
               }}>
               <ConversationItem active={conversation.id === value}>
-                <ConversationIcon>{conversation}</ConversationIcon>
-                <Name active={conversation.id === value}>{conversation.name || "Untitled Conversation"}</Name>
+                <ConversationIcon conversation={conversation} />
+                <ConversationName conversation={conversation} />
               </ConversationItem>
             </NavLink>
           ))}
@@ -65,4 +63,12 @@ const ConversationSelectionPane = (props) => (
   </CurrentConversationContext.Consumer>
 );
 
-export default ConversationSelectionPane;
+export default createFragmentContainer(ConversationSelectionPane, {
+  conversations: graphql`
+    fragment ConversationSelectionPane_conversations on Conversation @relay(plural: true) {
+      id
+      ...ConversationName_conversation
+      ...ConversationIcon_conversation
+    }
+  `,
+});

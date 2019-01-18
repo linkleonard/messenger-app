@@ -7,6 +7,10 @@
     messages(conversationId: ID): [Message]
   }
 
+  type Mutation {
+    createMessage(conversationId: ID!, body: String!): Message
+  }
+
   type User {
     id: ID
     name: String
@@ -19,6 +23,10 @@
     name: String
     participants: [User]
     messages: [Message]
+  }
+
+  type ConversationList {
+    items: [Conversation]
   }
 
   type Message {

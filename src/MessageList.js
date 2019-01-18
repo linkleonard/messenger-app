@@ -1,22 +1,24 @@
 import React from 'react';
 import graphql from 'babel-plugin-relay/macro';
-import { QueryRenderer } from 'react-relay';
+import { createFragmentContainer } from 'react-relay';
 import styled from 'styled-components/macro';
 
-import environment from './environment';
 import CurrentUserContext from './CurrentUserContext';
 import ChatSenderIcon from './ChatSenderIcon';
-import CurrentConversationContext from './CurrentConversationContext';
+import Message from './Message';
 
 
 const ConversationContainer = styled.div`
+  flex: 1 0 auto;
   display: flex;
 
   flex-flow: column;
   align-items: center;
-  justify-items: flex-end;
+  justify-content: flex-end;
+  padding: 10px;
 
 `;
+
 
 const SenderMessageGroup = styled.div`
   flex: 0 1 auto;
@@ -45,40 +47,6 @@ const SenderName = styled.div`
   color: #aaa;
 `;
 
-const tightRadius = "5px";
-const wideRadius = "20px";
-
-const Message = styled.div.attrs({
-  firstLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
-  firstRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
-  middleLeftRadius: ({isSender}) => isSender ? wideRadius : tightRadius,
-  middleRightRadius: ({isSender}) => isSender ? tightRadius : wideRadius,
-})`
-  display: inline-block;
-  flex: 0 1 0;
-
-  margin: 2.5px 10px;
-  padding: 5px 10px;
-  border-radius: 20px;
-
-  background: #ccccff;
-
-  font-size: 14px;
-  border: 1px solid transparent;
-  border-bottom-left-radius: ${({firstLeftRadius}) => firstLeftRadius};
-  border-bottom-right-radius: ${({firstRightRadius}) => firstRightRadius};
-
-  & + div {
-    border-top-left-radius: ${({middleLeftRadius}) => middleLeftRadius};
-    border-top-right-radius: ${({middleRightRadius}) => middleRightRadius};
-  }
-
-  &:last-child {
-    border-bottom-left-radius: ${wideRadius};
-    border-bottom-right-radius: ${wideRadius};
-  }
-`;
-
 const MessageGroup = styled.div`
   display: flex;
 
@@ -86,88 +54,99 @@ const MessageGroup = styled.div`
   align-items: ${({isSender}) => isSender ? "flex-end" : "flex-start"};
 `;
 
-const MessageList = (props) => (
-  <CurrentConversationContext.Consumer>
-    {value => (
-      <QueryRenderer
-        environment={environment}
-        query={graphql`
-          query MessageListlQuery($conversationId: ID) {
-            messages(conversationId: $conversationId) {
-              id
-              body
-              sender {
-                id
-                name
-              }
-            }
-          }
-        `}
-        variables={{conversationId: value}}
-        render={({error, props}) => {
-          if (error) {
-            return <div>Error!</div>;
-          }
-          if (!props) {
-            return <div>Loading...</div>;
-          }
+const ErrorMessage = styled.div`
+  color: #333;
+`;
 
-          const groupedMessages = props.messages.reduce(
-            (groups, message) => {
-              const lastGroup = groups[groups.length - 1];
-              if (!lastGroup) {
-                return [[message]];
-              }
 
-              if (message.sender.id === lastGroup[0].sender.id) {
-                return [
-                  ...groups.slice(0, -1),
-                  [...lastGroup, message],
-                ];
-              }
+function groupMessages(messages) {
+  return messages.reduce(
+    (groups, message) => {
+      const lastGroup = groups[groups.length - 1];
+      if (!lastGroup) {
+        return [[message]];
+      }
 
-              return [
-                ...groups,
-                [message],
-              ]
-            },
-            [],
-          );
+      if (message.sender.id === lastGroup[0].sender.id) {
+        return [
+          ...groups.slice(0, -1),
+          [...lastGroup, message],
+        ];
+      }
 
+      return [
+        ...groups,
+        [message],
+      ]
+    },
+    [],
+  );
+}
+
+
+
+const MessageList = ({ conversation }) => {
+  if (!conversation) {
+    return (
+      <ConversationContainer>
+        <ErrorMessage>Please select a conversation.</ErrorMessage>
+      </ConversationContainer>
+    )
+  }
+  if (!conversation.messages.length) {
+    return (
+      <ConversationContainer>
+        <ErrorMessage>This conversation does not yet have any messages.</ErrorMessage>
+      </ConversationContainer>
+    );
+  }
+
+  const groupedMessages = groupMessages(conversation.messages);
+  const messages = groupedMessages.map(messages => {
+    const firstMessage = messages[0];
+    const sender = firstMessage.sender;
+    return (
+      <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
+        {me => {
+          const isSender = me.id === sender.id;
           return (
-            <ConversationContainer>
-              {groupedMessages.map(messages => {
-                const firstMessage = messages[0];
-                const sender = firstMessage.sender;
-                return (
-                  <CurrentUserContext.Consumer key={`${sender.id}-${firstMessage.id}`}>
-                    {me => {
-                      const isSender = me.id === sender.id;
-                      return (
-                        <SenderMessageGroup isSender={isSender}>
-                          <Sender isSender={isSender}>
-                            <ChatSenderIcon>{sender}</ChatSenderIcon>
-                          </Sender>
-                          <MessageGroup isSender={isSender}>
-                            {!isSender && <SenderName>{sender.name}</SenderName>}
-                            {messages.map(message => (
-                              <Message isSender={isSender} key={message.id}>
-                                {message.body}
-                              </Message>
-                            ))}
-                          </MessageGroup>
-                        </SenderMessageGroup>
-                      );
-                    }}
-                  </CurrentUserContext.Consumer>
-                );
-              })}
-            </ConversationContainer>
+            <SenderMessageGroup isSender={isSender}>
+              <Sender isSender={isSender}>
+                <ChatSenderIcon user={sender} />
+              </Sender>
+              <MessageGroup isSender={isSender}>
+                {!isSender && <SenderName>{sender.name}</SenderName>}
+                {messages.map(message => (
+                  <Message key={message.id} message={message} />
+                ))}
+              </MessageGroup>
+            </SenderMessageGroup>
           );
         }}
-      />
-    )}
-  </CurrentConversationContext.Consumer>
-)
+      </CurrentUserContext.Consumer>
+    );
+  })
 
-export default MessageList;
+  return (
+    <ConversationContainer>
+      {messages}
+    </ConversationContainer>
+  )
+};
+
+
+export default createFragmentContainer(MessageList, {
+  conversation: graphql`
+    fragment MessageList_conversation on Conversation {
+      id
+      messages {
+        id
+        sender {
+          id
+          ...ChatSenderIcon_user
+        }
+        ...Message_message
+      }
+    }
+  `,
+});

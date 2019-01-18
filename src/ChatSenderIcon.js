@@ -1,9 +1,7 @@
 import React from 'react';
 import graphql from 'babel-plugin-relay/macro';
-import { QueryRenderer } from 'react-relay';
+import { createFragmentContainer } from 'react-relay';
 import styled from 'styled-components/macro';
-
-import environment from './environment';
 
 const Bubble = styled.div`
   display: inline-flex;
@@ -18,27 +16,15 @@ const Bubble = styled.div`
 `;
 
 
-const ChatSenderIcon = ({ children }) => (
-  <QueryRenderer
-    environment={environment}
-    variables={{senderID: children.id}}
-    query={graphql`
-      query ChatSenderIconQuery($senderID: ID) {
-        user(id: $senderID) {
-          name
-        }
-      }
-    `}
-    render={({error, props}) => {
-      if (error) {
-        return "Error!";
-      }
-      if (!props) {
-        return "Loading...";
-      }
-      return <Bubble>{props.user.name[0]}</Bubble>;
-    }}
-  />
-);
+const ChatSenderIcon = ({ user }) => (
+  <Bubble>{user.name[0]}</Bubble>
+)
 
-export default ChatSenderIcon;
+
+export default createFragmentContainer(ChatSenderIcon, {
+  user: graphql`
+    fragment ChatSenderIcon_user on User {
+      name
+    }
+  `
+});

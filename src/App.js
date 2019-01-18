@@ -1,6 +1,6 @@
 import { QueryRenderer } from 'react-relay';
-import { BrowserRouter as Router, Route, Link } from "react-router-dom";
-import styled from 'styled-components/macro';
+import { BrowserRouter as Router, Route } from "react-router-dom";
+import styled, { createGlobalStyle } from 'styled-components/macro';
 import graphql from 'babel-plugin-relay/macro';
 import React from 'react';
 import environment from './environment';
@@ -13,6 +13,14 @@ const AppWrapper = styled.div`
   flex-flow: row;
   height: 100%;
 `;
+
+const GlobalStyle = createGlobalStyle`
+  #root,
+  body,
+  html {
+    height: 100%;
+  }
+`
 
 
 const Conversations = ({ match, conversations }) => {
@@ -36,12 +44,7 @@ const App = () => (
           id
         }
         conversations {
-          id
-          name
-          participants {
-            id
-            name
-          }
+          ...ConversationListView_conversations
         }
       }
     `}
@@ -66,6 +69,7 @@ const App = () => (
               />
             </Router>
           </CurrentUserContext.Provider>
+          <GlobalStyle />
         </AppWrapper>
       );
     }}
