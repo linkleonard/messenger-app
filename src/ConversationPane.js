@@ -14,7 +14,7 @@ const Wrapper = styled.div`
 const ConversationPane = ({ conversation }) => (
   <Wrapper>
     <MessageList conversation={conversation} />
-    <NewMessageForm />
+    <NewMessageForm conversation={conversation} />
   </Wrapper>
 )
 
